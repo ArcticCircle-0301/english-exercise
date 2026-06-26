@@ -223,10 +223,10 @@ const JB_KEY = JSONBIN_API_KEY;
 const JB_HEADERS = {'X-Master-Key': JB_KEY, 'Content-Type': 'application/json', 'X-Bin-Private': 'false'};
 
 // Data bins - will be created on first run
-let USERS_BIN_ID = localStorage.getItem('jb_users_bin') || '';
-let RECORDS_BIN_ID = localStorage.getItem('jb_records_bin') || '';
-let BLOCKLIST_BIN_ID = localStorage.getItem('jb_blocklist_bin') || '';
-let SCORES_BIN_ID = localStorage.getItem('jb_scores_bin') || '';
+let USERS_BIN_ID='6a3e558ef5f4af5e29339e4c';
+let RECORDS_BIN_ID='6a3e5591f5f4af5e29339e5e';
+let BLOCKLIST_BIN_ID='6a3e5592f5f4af5e29339e5f';
+let SCORES_BIN_ID='6a3e5593f5f4af5e29339e60';
 
 // ===================== JSONBIN HELPER =====================
 async function jbGet(binId){
@@ -260,31 +260,10 @@ async function jbCreate(data){
   return j.metadata.id;
 }
 
-async function ensureBins(){
-  if(!USERS_BIN_ID){
-    const id=await jbCreate([{_init:true}]);
-    USERS_BIN_ID=id;
-    localStorage.setItem('jb_users_bin',id);
-  }
-  if(!RECORDS_BIN_ID){
-    const id=await jbCreate([{_init:true}]);
-    RECORDS_BIN_ID=id;
-    localStorage.setItem('jb_records_bin',id);
-  }
-  if(!BLOCKLIST_BIN_ID){
-    const id=await jbCreate([{_init:true}]);
-    BLOCKLIST_BIN_ID=id;
-    localStorage.setItem('jb_blocklist_bin',id);
-  }
-  if(!SCORES_BIN_ID){
-    const id=await jbCreate([{_i:1}]);
-    SCORES_BIN_ID=id;
-    localStorage.setItem('jb_scores_bin',id);
-  }
-}
+async function ensureBins(){/* IDs hardcoded - shared across all users */}
 
 // Helper: filter out init entries and get clean array
-function cleanArr(arr){return arr.filter(x=>!x._init)}
+function cleanArr(arr){return arr.filter(x=>!x._init&&!x._i)}
 // Helpers for each data type
 async function getUsers(){return cleanArr(await jbGet(USERS_BIN_ID))}
 async function getRecords(){return cleanArr(await jbGet(RECORDS_BIN_ID))}

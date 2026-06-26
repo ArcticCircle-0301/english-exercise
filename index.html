@@ -725,7 +725,6 @@ async function viewMyRank(){
 async function renderRank(){
   const area=document.getElementById('rankArea');
   let html=`<div class="rank-section"><div class="rank-title"><i class="fa-solid fa-ranking-star"></i> 排行榜</div>`;
-  // Module/unit selector
   html+=`<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">`;
   html+=`<select id="rankMod" onchange="S._rankMod=this.value;renderRank()" style="padding:8px 12px;border-radius:8px;border:1px solid var(--bd);font-size:.9rem">
     <option value="vocab" ${(!S._rankMod||S._rankMod==='vocab')?'selected':''}>词汇精练</option>
@@ -734,6 +733,7 @@ async function renderRank(){
   for(let u=1;u<=6;u++)html+=`<option value="${u}" ${(S._rankUnit||1)===u?'selected':''}>Unit ${u}</option>`;
   html+=`</select></div>`;
   try{
+    await ensureBins();
     const scores=await getScores();
     const mod=S._rankMod||'vocab';const unit=S._rankUnit||1;
     let filtered=scores.filter(s=>s.module===mod&&s.unit===unit);

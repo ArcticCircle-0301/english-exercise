@@ -238,21 +238,31 @@ async function jbCreate(data){
 
 async function ensureBins(){
   if(!USERS_BIN_ID){
-    const id=await jbCreate([]);
+    const id=await jbCreate([{_init:true}]);
     USERS_BIN_ID=id;
     localStorage.setItem('jb_users_bin',id);
   }
   if(!RECORDS_BIN_ID){
-    const id=await jbCreate([]);
+    const id=await jbCreate([{_init:true}]);
     RECORDS_BIN_ID=id;
     localStorage.setItem('jb_records_bin',id);
   }
   if(!BLOCKLIST_BIN_ID){
-    const id=await jbCreate([]);
+    const id=await jbCreate([{_init:true}]);
     BLOCKLIST_BIN_ID=id;
     localStorage.setItem('jb_blocklist_bin',id);
   }
 }
+
+// Helper: filter out init entries and get clean array
+function cleanArr(arr){return arr.filter(x=>!x._init)}
+// Helpers for each data type
+async function getUsers(){return cleanArr(await getUsers())}
+async function getRecords(){return cleanArr(await getRecords())}
+async function getBlocklist(){return cleanArr(await getBlocklist())}
+async function saveUsers(arr){await jbPut(USERS_BIN_ID, arr)}
+async function saveRecords(arr){await jbPut(RECORDS_BIN_ID, arr)}
+async function saveBlocklist(arr){await jbPut(BLOCKLIST_BIN_ID, arr)}
 
 // ===================== STATE =====================
 let currentUser = null;
@@ -284,12 +294,12 @@ async function doRegister(){
   setLoading(true);
   try{
     await ensureBins();
-    const users=await jbGet(USERS_BIN_ID);
+    const users=await getUsers();
     if(users.find(u=>u.name===name)){document.getElementById('regErr').textContent='该姓名已被注册';setLoading(false);return}
     const hashed=await hashPass(pass);
     const user={id:'u_'+Date.now()+'_'+Math.random().toString(36).slice(2,8), name:name, pass:hashed, role:'student', createdAt:new Date().toISOString()};
     users.push(user);
-    await jbPut(USERS_BIN_ID, users);
+    await saveUsers(users);
     currentUser=user;
     await checkBlockedAndEnter();
   }catch(e){document.getElementById('regErr').textContent='注册失败：'+(e.message||'网络错误')}finally{setLoading(false)}
@@ -303,7 +313,7 @@ async function doLogin(){
   setLoading(true);
   try{
     await ensureBins();
-    const users=await jbGet(USERS_BIN_ID);
+    const users=await getUsers();
     const hashed=await hashPass(pass);
     const user=users.find(u=>u.name===name && u.pass===hashed);
     if(!user){document.getElementById('loginErr').textContent='姓名或密码错误';setLoading(false);return}
@@ -323,7 +333,7 @@ async function doAdminLogin(){
 }
 
 async function checkBlockedAndEnter(){
-  const blocklist=await jbGet(BLOCKLIST_BIN_ID);
+  const blocklist=await getBlocklist();
   const blocked=blocklist.find(b=>b.userId===currentUser.id);
   if(blocked){
     hide(document.getElementById('loginPage'));
@@ -355,7 +365,7 @@ function startHeartbeat(){
   heartbeatTimer=setInterval(async()=>{
     if(!currentUser)return;
     try{
-      const blocklist=await jbGet(BLOCKLIST_BIN_ID);
+      const blocklist=await getBlocklist();
       const blocked=blocklist.find(b=>b.userId===currentUser.id);
       if(blocked){
         document.getElementById('blkReason').textContent=blocked.reason||'你已被管理员禁止使用本系统。';
@@ -371,14 +381,14 @@ async function uploadRecord(score,total){
   if(!currentUser)return;
   try{
     await ensureBins();
-    const records=await jbGet(RECORDS_BIN_ID);
+    const records=await getRecords();
     let location='';
     try{const r=await fetch('https://ip.zxinc.org/api.php?type=json');const d=await r.json();location=(d.country||'')+(d.province||'')+(d.city||'')}catch(e){}
     const rec={id:'r_'+Date.now(),userId:currentUser.id,name:currentUser.name,module:S.module,unit:S.unit,
       loginTime:S.sessionStart.toISOString(),duration:Math.round((new Date()-S.sessionStart)/1000),
       score:score,totalQuestions:total,location:location,createdAt:new Date().toISOString()};
     records.push(rec);
-    await jbPut(RECORDS_BIN_ID, records);
+    await saveRecords(records);
   }catch(e){console.error('Upload failed:',e)}
 }
 
@@ -478,9 +488,9 @@ async function loadAdminData(){
   setLoading(true);
   try{
     await ensureBins();
-    const users=await jbGet(USERS_BIN_ID);
-    const records=await jbGet(RECORDS_BIN_ID);
-    const blocklist=await jbGet(BLOCKLIST_BIN_ID);
+    const users=await getUsers();
+    const records=await getRecords();
+    const blocklist=await getBlocklist();
     const blockedIds=blocklist.map(b=>b.userId);
 
     const today=new Date();today.setHours(0,0,0,0);
@@ -520,9 +530,9 @@ async function blockUser(userId,name){
   if(reason===null)return;
   setLoading(true);
   try{
-    const blocklist=await jbGet(BLOCKLIST_BIN_ID);
+    const blocklist=await getBlocklist();
     blocklist.push({userId,name,reason:reason||'你已被管理员禁止使用本系统。',blockedAt:new Date().toISOString()});
-    await jbPut(BLOCKLIST_BIN_ID,blocklist);
+    await saveBlocklist(blocklist);
     await loadAdminData();
   }catch(e){alert('操作失败：'+e.message)}finally{setLoading(false)}
 }
@@ -531,9 +541,9 @@ async function unblockUser(userId){
   if(!confirm('确定解封该用户？'))return;
   setLoading(true);
   try{
-    const blocklist=await jbGet(BLOCKLIST_BIN_ID);
+    const blocklist=await getBlocklist();
     const filtered=blocklist.filter(b=>b.userId!==userId);
-    await jbPut(BLOCKLIST_BIN_ID,filtered);
+    await saveBlocklist(filtered);
     await loadAdminData();
   }catch(e){alert('操作失败：'+e.message)}finally{setLoading(false)}
 }

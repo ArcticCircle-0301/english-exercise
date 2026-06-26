@@ -257,9 +257,9 @@ async function ensureBins(){
 // Helper: filter out init entries and get clean array
 function cleanArr(arr){return arr.filter(x=>!x._init)}
 // Helpers for each data type
-async function getUsers(){return cleanArr(await getUsers())}
-async function getRecords(){return cleanArr(await getRecords())}
-async function getBlocklist(){return cleanArr(await getBlocklist())}
+async function getUsers(){return cleanArr(await jbGet(USERS_BIN_ID))}
+async function getRecords(){return cleanArr(await jbGet(RECORDS_BIN_ID))}
+async function getBlocklist(){return cleanArr(await jbGet(BLOCKLIST_BIN_ID))}
 async function saveUsers(arr){await jbPut(USERS_BIN_ID, arr)}
 async function saveRecords(arr){await jbPut(RECORDS_BIN_ID, arr)}
 async function saveBlocklist(arr){await jbPut(BLOCKLIST_BIN_ID, arr)}

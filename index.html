@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<script>
+!(function(j,a,g){j.__itrace_conf = {bid: 'f43basl8-6nqu7l3w',rel: '0.0.1', spa: true, uid: '', plugins:['jserror','interface','perf','resource','flow','blank']};var b = a.createElement("script");var d = a.getElementsByTagName("script")[0];b.type = "text/javascript";b.crossorigin = true;b.async = true;b.onload = function(){j.__itrace && j.__itrace.setReady()};d.parentNode.insertBefore(b,d);b.src = g})(window, document, "https://g.alicdn.com/woodpeckerx/itrace-next/itrace.iife.js")
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>大学英语第二册 · 词汇与短语练习</title>
+<link href="https://cdn.staticfile.net/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script src="data.js"></script>
+
+<!-- ========== ⚙️ 配置区 ========== -->
+<script>
+const JSONBIN_API_KEY = '$2a$10$q4Oilv910j0h4OrYWrt1GudpTIjJC43FbGW6Zly9V25jhENQXvfHK';
+const ADMIN_PASS = 'Bjq123456.';  // ← 改成你想要的管理员密码
+</script>
+<!-- ========== 配置区结束 ========== -->
+
+<style>
+:root{--pri:#1890FF;--pri-dk:#096DD9;--pri-lt:#E6F7FF;--ok:#52C41A;--ok-lt:#F6FFED;--err:#FF4D4F;--err-lt:#FFF2F0;--bg:#F0F2F5;--card:#fff;--text:#333;--text2:#666;--text3:#999;--bd:#E8E8E8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.hide{display:none!important}
+
+.login-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.login-logo{width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,var(--pri),#6C5CE7);display:flex;align-items:center;justify-content:center;color:#fff;font-size:32px;margin-bottom:20px;box-shadow:0 8px 24px rgba(24,144,255,.3)}
+.login-title{font-size:1.5rem;font-weight:700;margin-bottom:6px}
+.login-sub{font-size:.9rem;color:var(--text3);margin-bottom:28px}
+.login-card{width:100%;max-width:380px;background:var(--card);border-radius:16px;padding:28px 24px;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.login-card h3{font-size:1.1rem;margin-bottom:20px;text-align:center}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:.85rem;color:var(--text2);margin-bottom:5px;font-weight:500}
+.fg input{width:100%;padding:11px 14px;border:1.5px solid var(--bd);border-radius:10px;font-size:1rem;outline:none;transition:border .2s}
+.fg input:focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(24,144,255,.12)}
+.btn{display:inline-block;padding:12px 24px;border:none;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer;transition:all .2s;text-align:center}
+.btn-full{width:100%}
+.btn-pri{background:linear-gradient(135deg,var(--pri),#6C5CE7);color:#fff;box-shadow:0 4px 12px rgba(24,144,255,.3)}
+.btn-pri:hover{transform:translateY(-1px)}
+.btn-out{background:var(--card);color:var(--pri);border:1.5px solid var(--pri)}
+.btn-dng{background:var(--err);color:#fff}
+.btn-sm{padding:7px 14px;font-size:.82rem;border-radius:8px}
+.err-msg{color:var(--err);font-size:.85rem;text-align:center;margin-top:8px;min-height:18px}
+.switch-link{text-align:center;margin-top:14px;font-size:.9rem;color:var(--text3)}
+.switch-link a{color:var(--pri);cursor:pointer;font-weight:500}
+.admin-entry{margin-top:28px;font-size:.76rem;color:var(--text3);cursor:pointer;opacity:.4;transition:opacity .3s}
+.admin-entry:hover{opacity:1}
+
+.topbar{background:linear-gradient(135deg,var(--pri),#6C5CE7);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.topbar .uinfo{font-size:.9rem;display:flex;align-items:center;gap:8px}
+.logout-btn{background:rgba(255,255,255,.2);border:none;color:#fff;padding:6px 12px;border-radius:20px;font-size:.8rem;cursor:pointer}
+
+.tabs{display:flex;background:var(--card);border-bottom:2px solid var(--bd);position:sticky;top:52px;z-index:99}
+.tab{flex:1;padding:13px 0;text-align:center;font-size:.95rem;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s}
+.tab.on{color:var(--pri);border-bottom-color:var(--pri);background:var(--pri-lt)}
+
+.ugrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:18px 14px}
+.ucard{background:var(--card);border-radius:14px;padding:20px 14px;text-align:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.05);border:1.5px solid transparent;transition:all .2s}
+.ucard:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.1);border-color:var(--pri)}
+.ucard .un{font-size:2rem;font-weight:800;color:var(--pri)}
+.ucard .ul{font-size:.8rem;color:var(--text3);margin-top:3px}
+.ucard.done{border-color:var(--ok);background:var(--ok-lt)}
+.ucard.done .un{color:var(--ok)}
+
+.quiz{padding:14px}
+.pbar{height:4px;background:var(--bd);border-radius:2px;margin-bottom:14px;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,var(--pri),#6C5CE7);border-radius:2px;transition:width .3s}
+.qhead{display:flex;justify-content:space-between;font-size:.85rem;color:var(--text2);margin-bottom:10px}
+.qcard{background:var(--card);border-radius:16px;padding:22px 18px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:14px}
+.qsent{font-size:1.05rem;line-height:1.7;font-weight:500;margin-bottom:18px}
+.olist{display:flex;flex-direction:column;gap:10px}
+.obtn{padding:13px 15px;border:1.5px solid var(--bd);border-radius:12px;background:var(--card);font-size:.95rem;cursor:pointer;text-align:left;transition:all .2s;font-weight:500}
+.obtn:hover:not(.dis){border-color:var(--pri);background:var(--pri-lt)}
+.obtn.sel{border-color:var(--pri);background:var(--pri-lt);color:var(--pri-dk)}
+.obtn.ok{border-color:var(--ok);background:var(--ok-lt);color:#155724}
+.obtn.no{border-color:var(--err);background:var(--err-lt);color:#9b2c2c;text-decoration:line-through}
+.obtn.dis{cursor:default;opacity:.65}
+
+.anbox{margin-top:14px;background:#f8f9fa;border-radius:12px;overflow:hidden;border:1px solid var(--bd)}
+.antog{padding:11px 15px;cursor:pointer;display:flex;align-items:center;gap:7px;font-size:.88rem;font-weight:600;color:var(--pri)}
+.ancon{padding:0 15px 14px;font-size:.83rem;line-height:1.7;color:var(--text2);display:none}
+.ancon.open{display:block}
+
+.rcard{background:var(--card);border-radius:16px;padding:30px 22px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.rscore{font-size:3rem;font-weight:800;background:linear-gradient(135deg,var(--pri),#6C5CE7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:10px 0}
+.rdet{font-size:.95rem;color:var(--text2);margin-bottom:22px}
+.raction{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+.blk-ov{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:9999}
+.blk-card{background:var(--card);border-radius:20px;padding:36px 28px;text-align:center;max-width:340px;width:90%;box-shadow:0 20px 40px rgba(0,0,0,.3)}
+.blk-card i{font-size:3rem;color:var(--err);margin-bottom:14px}
+.blk-card h2{font-size:1.2rem;margin-bottom:8px}
+.blk-card p{color:var(--text2);font-size:.88rem;line-height:1.6}
+
+.adm{max-width:900px;margin:0 auto;padding:18px 14px}
+.adm-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.adm-hd h1{font-size:1.3rem}
+.astats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:22px}
+.astat{background:var(--card);border-radius:12px;padding:18px 14px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.astat .sn{font-size:1.7rem;font-weight:800;color:var(--pri)}
+.astat .sl{font-size:.78rem;color:var(--text3);margin-top:3px}
+.asec{background:var(--card);border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.asec h3{font-size:1rem;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--bd)}
+.atbl{width:100%;border-collapse:collapse;font-size:.82rem}
+.atbl th{text-align:left;padding:7px 5px;border-bottom:2px solid var(--bd);color:var(--text3);font-weight:600;white-space:nowrap}
+.atbl td{padding:7px 5px;border-bottom:1px solid var(--bd)}
+.atbl tr:hover{background:#f8f9fa}
+.bbtn{padding:3px 9px;border-radius:5px;font-size:.72rem;cursor:pointer;border:none;font-weight:600}
+.bbtn.blk{background:var(--err);color:#fff}
+.bbtn.ublk{background:var(--ok);color:#fff}
+.back-link{display:inline-flex;align-items:center;gap:5px;color:var(--text3);cursor:pointer;font-size:.88rem;margin-bottom:14px}
+.back-link:hover{color:var(--pri)}
+.loading{position:fixed;inset:0;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;z-index:9998;font-size:1.1rem;color:var(--text2)}
+</style>
+</head>
+<body>
+
+<div id="loadingEl" class="loading hide"><i class="fa-solid fa-spinner fa-spin"></i> 加载中...</div>
+
+<!-- 登录 -->
+<div id="loginPage" class="login-wrap">
+  <div class="login-logo"><i class="fa-solid fa-book-open"></i></div>
+  <div class="login-title">大学英语第二册</div>
+  <div class="login-sub">词汇与短语练习系统</div>
+  <div id="regCard" class="login-card hide">
+    <h3>注册新账号</h3>
+    <div class="fg"><label>姓名</label><input id="rName" placeholder="输入你的姓名"></div>
+    <div class="fg"><label>密码</label><input id="rPass" type="password" placeholder="设置密码（至少6位）"></div>
+    <div class="fg"><label>确认密码</label><input id="rPass2" type="password" placeholder="再次输入密码"></div>
+    <button class="btn btn-pri btn-full" onclick="doRegister()">注 册</button>
+    <div id="regErr" class="err-msg"></div>
+    <div class="switch-link">已有账号？<a onclick="toggleReg(false)">去登录</a></div>
+  </div>
+  <div id="loginCard" class="login-card">
+    <h3>登录</h3>
+    <div class="fg"><label>姓名</label><input id="lName" placeholder="输入姓名"></div>
+    <div class="fg"><label>密码</label><input id="lPass" type="password" placeholder="输入密码"></div>
+    <button class="btn btn-pri btn-full" onclick="doLogin()">登 录</button>
+    <div id="loginErr" class="err-msg"></div>
+    <div class="switch-link">没有账号？<a onclick="toggleReg(true)">去注册</a></div>
+  </div>
+  <div class="admin-entry" onclick="showAdminLogin()"><i class="fa-solid fa-shield-halved"></i> 管理员入口</div>
+</div>
+
+<!-- 管理员登录 -->
+<div id="adminLoginPage" class="login-wrap hide">
+  <div class="login-logo" style="background:linear-gradient(135deg,#e74c3c,#c0392b)"><i class="fa-solid fa-shield-halved"></i></div>
+  <div class="login-title">管理员登录</div>
+  <div class="login-sub">仅限授权管理员</div>
+  <div class="login-card">
+    <h3>管理员验证</h3>
+    <div class="fg"><label>管理员密码</label><input id="aPass" type="password" placeholder="输入管理员密码"></div>
+    <button class="btn btn-pri btn-full" style="background:linear-gradient(135deg,#e74c3c,#c0392b)" onclick="doAdminLogin()">管理员登录</button>
+    <div id="aLoginErr" class="err-msg"></div>
+    <div class="switch-link"><a onclick="backToUserLogin()"><i class="fa-solid fa-arrow-left"></i> 返回用户登录</a></div>
+  </div>
+</div>
+
+<!-- 封禁 -->
+<div id="blockedOv" class="blk-ov hide">
+  <div class="blk-card">
+    <i class="fa-solid fa-ban"></i>
+    <h2>访问已被禁止</h2>
+    <p id="blkReason">你已被管理员禁止使用本系统。</p>
+    <button class="btn btn-out" style="margin-top:18px" onclick="doLogout()">退出登录</button>
+  </div>
+</div>
+
+<!-- 主应用 -->
+<div id="mainApp" class="hide" style="max-width:640px;margin:0 auto">
+  <div class="topbar">
+    <div class="uinfo"><i class="fa-solid fa-user-circle"></i><span id="navName"></span></div>
+    <button class="logout-btn" onclick="doLogout()"><i class="fa-solid fa-right-from-bracket"></i> 退出</button>
+  </div>
+  <div class="tabs">
+    <div class="tab on" onclick="switchMod('vocab',this)">词汇精练</div>
+    <div class="tab" onclick="switchMod('phrase',this)">短语练习</div>
+  </div>
+  <div id="unitSel"></div>
+  <div id="quizArea" class="hide"></div>
+  <div id="resultArea" class="hide"></div>
+</div>
+
+<!-- 管理后台 -->
+<div id="adminApp" class="adm hide">
+  <div class="adm-hd">
+    <h1><i class="fa-solid fa-shield-halved" style="color:var(--err)"></i> 管理后台</h1>
+    <button class="btn btn-sm btn-out" onclick="exitAdmin()"><i class="fa-solid fa-arrow-left"></i> 返回</button>
+  </div>
+  <div id="admStats" class="astats"></div>
+  <div id="admRecs" class="asec"></div>
+  <div id="admUsers" class="asec"></div>
+</div>
+
+<script>
+// ===================== JSONBIN 配置 =====================
+const JB_KEY = JSONBIN_API_KEY;
+const JB_HEADERS = {'X-Master-Key': JB_KEY, 'Content-Type': 'application/json', 'X-Bin-Private': 'false'};
+
+// Data bins - will be created on first run
+let USERS_BIN_ID = localStorage.getItem('jb_users_bin') || '';
+let RECORDS_BIN_ID = localStorage.getItem('jb_records_bin') || '';
+let BLOCKLIST_BIN_ID = localStorage.getItem('jb_blocklist_bin') || '';
+
+// ===================== JSONBIN HELPER =====================
+async function jbGet(binId){
+  const r=await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{headers:{'X-Master-Key':JB_KEY}});
+  if(!r.ok) throw new Error('JSONBin read failed');
+  return (await r.json()).record;
+}
+async function jbPut(binId, data){
+  const r=await fetch(`https://api.jsonbin.io/v3/b/${binId}`,{method:'PUT',headers:JB_HEADERS,body:JSON.stringify(data)});
+  if(!r.ok) throw new Error('JSONBin write failed');
+  return await r.json();
+}
+async function jbCreate(data){
+  const r=await fetch('https://api.jsonbin.io/v3/b',{method:'POST',headers:JB_HEADERS,body:JSON.stringify(data)});
+  if(!r.ok) throw new Error('JSONBin create failed');
+  const j=await r.json();
+  return j.metadata.id;
+}
+
+async function ensureBins(){
+  if(!USERS_BIN_ID){
+    const id=await jbCreate([]);
+    USERS_BIN_ID=id;
+    localStorage.setItem('jb_users_bin',id);
+  }
+  if(!RECORDS_BIN_ID){
+    const id=await jbCreate([]);
+    RECORDS_BIN_ID=id;
+    localStorage.setItem('jb_records_bin',id);
+  }
+  if(!BLOCKLIST_BIN_ID){
+    const id=await jbCreate([]);
+    BLOCKLIST_BIN_ID=id;
+    localStorage.setItem('jb_blocklist_bin',id);
+  }
+}
+
+// ===================== STATE =====================
+let currentUser = null;
+let isAdmin = false;
+const S = {module:'vocab',unit:null,qIdx:0,answered:false,selIdx:null,answers:{},completed:{},phraseOpts:{},sessionStart:null};
+const vocabCounts = {1:10,2:10,3:10,4:10,5:10,6:9};
+const phraseCounts = {1:9,2:8,3:8,4:8,5:8,6:8};
+
+// ===================== UI HELPERS =====================
+function show(el){el.classList.remove('hide')}
+function hide(el){el.classList.add('hide')}
+function setLoading(v){document.getElementById('loadingEl').classList.toggle('hide',!v)}
+function toggleReg(toReg){document.getElementById('loginCard').classList.toggle('hide',toReg);document.getElementById('regCard').classList.toggle('hide',!toReg)}
+function showAdminLogin(){hide(document.getElementById('loginPage'));show(document.getElementById('adminLoginPage'))}
+function backToUserLogin(){hide(document.getElementById('adminLoginPage'));show(document.getElementById('loginPage'))}
+
+// Simple hash for passwords (not crypto-grade, but sufficient for this use case)
+async function hashPass(pass){const enc=new TextEncoder().encode(pass);const buf=await crypto.subtle.digest('SHA-256',enc);return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('')}
+
+// ===================== AUTH =====================
+async function doRegister(){
+  const name=document.getElementById('rName').value.trim();
+  const pass=document.getElementById('rPass').value;
+  const pass2=document.getElementById('rPass2').value;
+  document.getElementById('regErr').textContent='';
+  if(!name){document.getElementById('regErr').textContent='请输入姓名';return}
+  if(pass.length<6){document.getElementById('regErr').textContent='密码至少6位';return}
+  if(pass!==pass2){document.getElementById('regErr').textContent='两次密码不一致';return}
+  setLoading(true);
+  try{
+    await ensureBins();
+    const users=await jbGet(USERS_BIN_ID);
+    if(users.find(u=>u.name===name)){document.getElementById('regErr').textContent='该姓名已被注册';setLoading(false);return}
+    const hashed=await hashPass(pass);
+    const user={id:'u_'+Date.now()+'_'+Math.random().toString(36).slice(2,8), name:name, pass:hashed, role:'student', createdAt:new Date().toISOString()};
+    users.push(user);
+    await jbPut(USERS_BIN_ID, users);
+    currentUser=user;
+    await checkBlockedAndEnter();
+  }catch(e){document.getElementById('regErr').textContent='注册失败：'+(e.message||'网络错误')}finally{setLoading(false)}
+}
+
+async function doLogin(){
+  const name=document.getElementById('lName').value.trim();
+  const pass=document.getElementById('lPass').value;
+  document.getElementById('loginErr').textContent='';
+  if(!name||!pass){document.getElementById('loginErr').textContent='请输入姓名和密码';return}
+  setLoading(true);
+  try{
+    await ensureBins();
+    const users=await jbGet(USERS_BIN_ID);
+    const hashed=await hashPass(pass);
+    const user=users.find(u=>u.name===name && u.pass===hashed);
+    if(!user){document.getElementById('loginErr').textContent='姓名或密码错误';setLoading(false);return}
+    currentUser=user;
+    await checkBlockedAndEnter();
+  }catch(e){document.getElementById('loginErr').textContent='登录失败：'+(e.message||'网络错误')}finally{setLoading(false)}
+}
+
+async function doAdminLogin(){
+  const pass=document.getElementById('aPass').value;
+  document.getElementById('aLoginErr').textContent='';
+  if(pass!==ADMIN_PASS){document.getElementById('aLoginErr').textContent='管理员密码错误';return}
+  isAdmin=true;
+  hide(document.getElementById('adminLoginPage'));
+  show(document.getElementById('adminApp'));
+  await loadAdminData();
+}
+
+async function checkBlockedAndEnter(){
+  const blocklist=await jbGet(BLOCKLIST_BIN_ID);
+  const blocked=blocklist.find(b=>b.userId===currentUser.id);
+  if(blocked){
+    hide(document.getElementById('loginPage'));
+    document.getElementById('blkReason').textContent=blocked.reason||'你已被管理员禁止使用本系统。';
+    show(document.getElementById('blockedOv'));
+    return;
+  }
+  hide(document.getElementById('loginPage'));
+  show(document.getElementById('mainApp'));
+  document.getElementById('navName').textContent=currentUser.name;
+  S.sessionStart=new Date();
+  renderUnitSelection();
+  startHeartbeat();
+}
+
+function doLogout(){
+  if(currentUser && S.sessionStart && S.unit){
+    // upload on logout if in a quiz
+  }
+  currentUser=null;isAdmin=false;
+  localStorage.removeItem('currentUser');
+  location.reload();
+}
+
+// ===================== HEARTBEAT =====================
+let heartbeatTimer=null;
+function startHeartbeat(){
+  if(heartbeatTimer)clearInterval(heartbeatTimer);
+  heartbeatTimer=setInterval(async()=>{
+    if(!currentUser)return;
+    try{
+      const blocklist=await jbGet(BLOCKLIST_BIN_ID);
+      const blocked=blocklist.find(b=>b.userId===currentUser.id);
+      if(blocked){
+        document.getElementById('blkReason').textContent=blocked.reason||'你已被管理员禁止使用本系统。';
+        show(document.getElementById('blockedOv'));
+        clearInterval(heartbeatTimer);
+      }
+    }catch(e){}
+  },30000);
+}
+
+// ===================== USAGE RECORD =====================
+async function uploadRecord(score,total){
+  if(!currentUser)return;
+  try{
+    await ensureBins();
+    const records=await jbGet(RECORDS_BIN_ID);
+    let location='';
+    try{const r=await fetch('https://ip.zxinc.org/api.php?type=json');const d=await r.json();location=(d.country||'')+(d.province||'')+(d.city||'')}catch(e){}
+    const rec={id:'r_'+Date.now(),userId:currentUser.id,name:currentUser.name,module:S.module,unit:S.unit,
+      loginTime:S.sessionStart.toISOString(),duration:Math.round((new Date()-S.sessionStart)/1000),
+      score:score,totalQuestions:total,location:location,createdAt:new Date().toISOString()};
+    records.push(rec);
+    await jbPut(RECORDS_BIN_ID, records);
+  }catch(e){console.error('Upload failed:',e)}
+}
+
+// ===================== QUIZ LOGIC =====================
+function switchMod(mod,el){S.module=mod;S.unit=null;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');renderUnitSelection()}
+function shuffleArray(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function renderUnitSelection(){
+  hide(document.getElementById('quizArea'));hide(document.getElementById('resultArea'));
+  const sel=document.getElementById('unitSel');sel.classList.remove('hide');
+  const isV=S.module==='vocab';const counts=isV?vocabCounts:phraseCounts;
+  let html='<div class="ugrid">';
+  for(let u=1;u<=6;u++){
+    const key=S.module+'-'+u;const done=S.completed[key];
+    html+=`<div class="ucard${done?' done':''}" onclick="selectUnit(${u})"><div class="un">Unit ${u}</div><div class="ul">${counts[u]} ${isV?'词汇':'短语'}题</div></div>`;
+  }
+  html+='</div>';sel.innerHTML=html;
+}
+
+function selectUnit(unit){
+  S.unit=unit;S.qIdx=0;S.answered=false;S.selIdx=null;S.sessionStart=new Date();
+  if(S.module==='vocab'){vocabData[unit]=shuffleArray(vocabData[unit])}else{phraseData[unit]=shuffleArray(phraseData[unit]);generatePhraseOptions(unit)}
+  hide(document.getElementById('unitSel'));show(document.getElementById('quizArea'));renderQuestion();
+}
+
+function generatePhraseOptions(unit){
+  const pool=phrasePools[unit];const qs=phraseData[unit];const map=[];
+  for(let i=0;i<qs.length;i++){const correct=qs[i].ca;const distractors=pool.filter(p=>p!==correct);
+    const allOpts=shuffleArray([correct,...shuffleArray(distractors).slice(0,3)]);
+    map.push({opts:allOpts,correctIdx:allOpts.indexOf(correct)});}
+  S.phraseOpts[unit]=map;
+}
+
+function getQuestions(){return S.module==='vocab'?vocabData[S.unit]:phraseData[S.unit]}
+function getTotalQ(){return getQuestions().length}
+
+function renderQuestion(){
+  const qs=getQuestions();const q=qs[S.qIdx];const isV=S.module==='vocab';const total=getTotalQ();
+  const pct=((S.qIdx)/total*100).toFixed(0);
+  let html=`<div class="pbar"><div class="pfill" style="width:${pct}%"></div></div>`;
+  html+=`<div class="qhead"><span>第 ${S.qIdx+1} / ${total} 题</span><span id="scoreDisp"></span></div>`;
+  html+=`<div class="qcard"><div class="qsent">${q.s}</div><div class="olist">`;
+  if(isV){
+    q.o.forEach((opt,i)=>{let cls='obtn';if(S.answered){cls+=' dis';if(i===q.c)cls='obtn ok dis';else if(i===S.selIdx)cls='obtn no dis'}html+=`<div class="${cls}" onclick="selectAnswer(${i})">${opt}</div>`});
+  }else{
+    const optsMap=S.phraseOpts[S.unit][S.qIdx];
+    optsMap.opts.forEach((opt,i)=>{let cls='obtn';if(S.answered){cls+=' dis';if(i===optsMap.correctIdx)cls='obtn ok dis';else if(i===S.selIdx)cls='obtn no dis'}html+=`<div class="${cls}" onclick="selectAnswer(${i})">${opt}</div>`});
+  }
+  html+='</div></div>';
+  if(S.answered){
+    html+=`<div class="anbox"><div class="antog" onclick="this.nextElementSibling.classList.toggle('open')"><i class="fa-solid fa-language"></i> 翻译与解析 <i class="fa-solid fa-chevron-down" style="font-size:.7rem"></i></div>`;
+    html+=`<div class="ancon"><p><b>中文翻译：</b>${q.t}</p><p><b>正确答案：</b>${isV?q.o[q.c]:q.ca} — ${q.m}</p>`;
+    if(isV&&q.wa){html+=`<p><b>错误选项分析：</b></p><ul style="padding-left:18px">`;q.wa.forEach(w=>html+=`<li>${w}</li>`);html+='</ul>'}
+    if(!isV&&q.ep)html+=`<p><b>易错点：</b>${q.ep}</p>`;
+    html+='</div></div>';
+  }
+  if(S.answered&&S.qIdx<total-1)html+=`<div style="text-align:center;margin-top:16px"><button class="btn btn-pri" onclick="nextQ()">下一题 <i class="fa-solid fa-arrow-right"></i></button></div>`;
+  document.getElementById('quizArea').innerHTML=html;
+  const key=S.module+'-'+S.unit;const rec=S.answers[key]||[];const correct=rec.filter(r=>r).length;
+  const sd=document.getElementById('scoreDisp');if(sd)sd.textContent=`✓ ${correct} / ${S.qIdx+1}`;
+}
+
+function selectAnswer(idx){
+  if(S.answered)return;S.selIdx=idx;S.answered=true;
+  const q=getQuestions()[S.qIdx];const isV=S.module==='vocab';
+  const correctIdx=isV?q.c:S.phraseOpts[S.unit][S.qIdx].correctIdx;
+  const key=S.module+'-'+S.unit;if(!S.answers[key])S.answers[key]=[];
+  S.answers[key][S.qIdx]=(idx===correctIdx);
+  if(idx===correctIdx)confetti({particleCount:80,spread:70,origin:{y:.7}});
+  renderQuestion();
+  if(S.qIdx>=getTotalQ()-1)setTimeout(()=>showResult(),1200);
+}
+
+function nextQ(){S.qIdx++;S.answered=false;S.selIdx=null;renderQuestion()}
+
+async function showResult(){
+  hide(document.getElementById('quizArea'));
+  const key=S.module+'-'+S.unit;const rec=S.answers[key]||[];
+  const total=rec.length;const correct=rec.filter(r=>r).length;const pct=Math.round(correct/total*100);
+  S.completed[key]=true;
+  let emoji='💪';if(pct>=90)emoji='🏆';else if(pct>=75)emoji='🎯';else if(pct>=60)emoji='📚';
+  document.getElementById('resultArea').innerHTML=`
+    <div class="rcard"><div style="font-size:2.5rem">${emoji}</div><div class="rscore">${pct}%</div>
+    <div class="rdet">共 ${total} 题，答对 ${correct} 题，答错 ${total-correct} 题</div>
+    <div class="raction"><button class="btn btn-pri btn-sm" onclick="selectUnit(${S.unit})">重做本单元</button>
+    <button class="btn btn-out btn-sm" onclick="backToUnits()">返回单元列表</button></div></div>`;
+  show(document.getElementById('resultArea'));
+  await uploadRecord(correct,total);
+}
+
+function backToUnits(){S.unit=null;hide(document.getElementById('quizArea'));hide(document.getElementById('resultArea'));show(document.getElementById('unitSel'));renderUnitSelection()}
+
+// ===================== ADMIN =====================
+function exitAdmin(){isAdmin=false;hide(document.getElementById('adminApp'));show(document.getElementById('loginPage'))}
+
+async function loadAdminData(){
+  setLoading(true);
+  try{
+    await ensureBins();
+    const users=await jbGet(USERS_BIN_ID);
+    const records=await jbGet(RECORDS_BIN_ID);
+    const blocklist=await jbGet(BLOCKLIST_BIN_ID);
+    const blockedIds=blocklist.map(b=>b.userId);
+
+    const today=new Date();today.setHours(0,0,0,0);
+    const todayActive=records.filter(r=>new Date(r.createdAt)>=today).length;
+    const studentCount=users.filter(u=>u.role!=='admin').length;
+
+    document.getElementById('admStats').innerHTML=`
+      <div class="astat"><div class="sn">${studentCount}</div><div class="sl">注册同学</div></div>
+      <div class="astat"><div class="sn">${todayActive}</div><div class="sl">今日练习</div></div>
+      <div class="astat"><div class="sn">${records.length}</div><div class="sl">总练习次数</div></div>`;
+
+    // Recent records
+    const recent=records.slice(-50).reverse();
+    let rhtml=`<h3><i class="fa-solid fa-clock-rotate-left"></i> 最近使用记录</h3>`;
+    if(!recent.length){rhtml+=`<p style="color:var(--text3);text-align:center;padding:20px">暂无记录</p>`}
+    else{rhtml+=`<div style="overflow-x:auto"><table class="atbl"><tr><th>姓名</th><th>模块</th><th>单元</th><th>得分</th><th>时长</th><th>地区</th><th>时间</th></tr>`;
+      recent.forEach(r=>{rhtml+=`<tr><td>${r.name||'-'}</td><td>${r.module==='vocab'?'词汇':'短语'}</td><td>U${r.unit||'-'}</td><td>${r.score}/${r.totalQuestions}</td><td>${fmtDur(r.duration)}</td><td>${r.location||'-'}</td><td>${fmtDate(r.createdAt)}</td></tr>`});
+      rhtml+='</table></div>'}
+    document.getElementById('admRecs').innerHTML=rhtml;
+
+    // User management
+    let uhtml=`<h3><i class="fa-solid fa-users"></i> 用户管理</h3>`;
+    uhtml+=`<div style="overflow-x:auto"><table class="atbl"><tr><th>姓名</th><th>注册时间</th><th>状态</th><th>操作</th></tr>`;
+    users.filter(u=>u.role!=='admin').forEach(u=>{
+      const isBlocked=blockedIds.includes(u.id);
+      uhtml+=`<tr><td>${u.name}</td><td>${fmtDate(u.createdAt)}</td><td>${isBlocked?'<span style="color:var(--err);font-weight:600">已封禁</span>':'<span style="color:var(--ok)">正常</span>'}</td>`;
+      if(isBlocked)uhtml+=`<td><button class="bbtn ublk" onclick="unblockUser('${u.id}')">解封</button></td>`;
+      else uhtml+=`<td><button class="bbtn blk" onclick="blockUser('${u.id}','${u.name}')">封禁</button></td>`;
+      uhtml+='</tr>'});
+    uhtml+='</table></div>';
+    document.getElementById('admUsers').innerHTML=uhtml;
+  }catch(e){console.error('Admin load error:',e)}finally{setLoading(false)}
+}
+
+async function blockUser(userId,name){
+  const reason=prompt(`封禁原因（将显示给${name}）：`);
+  if(reason===null)return;
+  setLoading(true);
+  try{
+    const blocklist=await jbGet(BLOCKLIST_BIN_ID);
+    blocklist.push({userId,name,reason:reason||'你已被管理员禁止使用本系统。',blockedAt:new Date().toISOString()});
+    await jbPut(BLOCKLIST_BIN_ID,blocklist);
+    await loadAdminData();
+  }catch(e){alert('操作失败：'+e.message)}finally{setLoading(false)}
+}
+
+async function unblockUser(userId){
+  if(!confirm('确定解封该用户？'))return;
+  setLoading(true);
+  try{
+    const blocklist=await jbGet(BLOCKLIST_BIN_ID);
+    const filtered=blocklist.filter(b=>b.userId!==userId);
+    await jbPut(BLOCKLIST_BIN_ID,filtered);
+    await loadAdminData();
+  }catch(e){alert('操作失败：'+e.message)}finally{setLoading(false)}
+}
+
+function fmtDate(d){if(!d)return'-';const dt=new Date(d);return`${dt.getMonth()+1}/${dt.getDate()} ${dt.getHours()}:${String(dt.getMinutes()).padStart(2,'0')}`}
+function fmtDur(s){if(!s)return'-';if(s<60)return s+'秒';return Math.floor(s/60)+'分'+s%60+'秒'}
+
+// ===================== INIT =====================
+// Auto-init bins on first load
+(async()=>{setLoading(true);try{await ensureBins()}catch(e){console.error('Init failed:',e)}finally{setLoading(false)}})();
+</script>
+</body>
+</html>

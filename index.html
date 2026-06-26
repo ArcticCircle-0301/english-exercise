@@ -206,18 +206,32 @@ let BLOCKLIST_BIN_ID = localStorage.getItem('jb_blocklist_bin') || '';
 
 // ===================== JSONBIN HELPER =====================
 async function jbGet(binId){
-  const r=await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{headers:{'X-Master-Key':JB_KEY}});
-  if(!r.ok) throw new Error('JSONBin read failed');
+  let r;
+  try{r=await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{headers:{'X-Master-Key':JB_KEY}});}
+  catch(e){throw new Error('网络请求失败，请用浏览器直接打开此页面（不要在微信内打开）。');}
+  if(!r.ok) throw new Error('读取数据失败('+r.status+')');
   return (await r.json()).record;
 }
 async function jbPut(binId, data){
-  const r=await fetch(`https://api.jsonbin.io/v3/b/${binId}`,{method:'PUT',headers:JB_HEADERS,body:JSON.stringify(data)});
-  if(!r.ok) throw new Error('JSONBin write failed');
+  let r;
+  try{r=await fetch(`https://api.jsonbin.io/v3/b/${binId}`,{method:'PUT',headers:JB_HEADERS,body:JSON.stringify(data)});}
+  catch(e){throw new Error('网络请求失败，请用浏览器直接打开此页面（不要在微信内打开）。');}
+  if(!r.ok) throw new Error('写入数据失败('+r.status+')');
   return await r.json();
 }
 async function jbCreate(data){
-  const r=await fetch('https://api.jsonbin.io/v3/b',{method:'POST',headers:JB_HEADERS,body:JSON.stringify(data)});
-  if(!r.ok) throw new Error('JSONBin create failed');
+  let r;
+  try{
+    r=await fetch('https://api.jsonbin.io/v3/b',{method:'POST',headers:JB_HEADERS,body:JSON.stringify(data)});
+  }catch(e){
+    // Network error - try alternative approach or show clear message
+    throw new Error('网络请求失败，请尝试用浏览器（Chrome/Safari）直接打开此页面，不要在微信内打开。如仍有问题请截图反馈。');
+  }
+  if(!r.ok){
+    const errText=await r.text();
+    console.error('JSONBin error:',r.status,errText);
+    throw new Error('数据服务暂时不可用（错误码:'+r.status+'），请稍后再试或用浏览器直接打开。');
+  }
   const j=await r.json();
   return j.metadata.id;
 }

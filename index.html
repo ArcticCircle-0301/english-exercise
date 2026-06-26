@@ -478,10 +478,25 @@ async function renderUnitSelection(){
     const key=S.module+'-'+u;const done=S.completed[key];
     const myScore=scores.find(s=>s.userId===currentUser.id&&s.module===S.module&&s.unit===u);
     let scoreHtml='';
-    if(myScore)scoreHtml=`<div class="uscore">最佳：${myScore.pct}% (${myScore.score}/${myScore.total})</div>`;
+    if(myScore)scoreHtml=`<div class="uscore">最佳：${myScore.pct}% (${myScore.score}/${myScore.total}) ${myScore.duration}s</div>`;
+    else scoreHtml=`<div class="uscore" style="color:var(--text3)">未作答</div>`;
     html+=`<div class="ucard${done?' done':''}" onclick="selectUnit(${u})"><div class="un">Unit ${u}</div><div class="ul">${counts[u]} ${isV?'词汇':'短语'}题</div>${scoreHtml}</div>`;
   }
-  html+='</div>';sel.innerHTML=html;
+  html+='</div>';
+  // Add ranking summary below unit grid
+  html+=`<div style="padding:0 14px 14px"><div class="rank-title" style="margin-bottom:8px"><i class="fa-solid fa-ranking-star"></i> ${isV?'词汇':'短语'}排行速览</div>`;
+  try{
+    const mod=S.module;
+    for(let u=1;u<=6;u++){
+      const unitScores=scores.filter(s=>s.module===mod&&s.unit===u).sort((a,b)=>b.pct-a.pct||a.duration-b.duration).slice(0,3);
+      if(!unitScores.length)continue;
+      html+=`<div style="font-size:.82rem;margin-bottom:4px;color:var(--text2)"><b>U${u}:</b> `;
+      unitScores.forEach((s,i)=>{const medal=i===0?'🥇':i===1?'🥈':'🥉';html+=`${medal}${s.name} ${s.pct}%(${s.duration}s) `});
+      html+='</div>';
+    }
+  }catch(e){}
+  html+='</div>';
+  sel.innerHTML=html;
 }
 
 function selectUnit(unit){

@@ -297,7 +297,9 @@ async function doRegister(){
     const users=await getUsers();
     if(users.find(u=>u.name===name)){document.getElementById('regErr').textContent='该姓名已被注册';setLoading(false);return}
     const hashed=await hashPass(pass);
-    const user={id:'u_'+Date.now()+'_'+Math.random().toString(36).slice(2,8), name:name, pass:hashed, role:'student', createdAt:new Date().toISOString()};
+    const user={id:'u_'+Date.now()+'_'+Math.random().toString(36).slice(2,8), name:name, pass:hashed, role:'student', createdAt:new Date().toISOString(), location:''};
+    // Get IP location
+    try{const r=await fetch('https://ip.zxinc.org/api.php?type=json');const d=await r.json();user.location=(d.country||'')+(d.province||'')+(d.city||'')}catch(e){}
     users.push(user);
     await saveUsers(users);
     currentUser=user;
@@ -513,10 +515,10 @@ async function loadAdminData(){
 
     // User management
     let uhtml=`<h3><i class="fa-solid fa-users"></i> 用户管理</h3>`;
-    uhtml+=`<div style="overflow-x:auto"><table class="atbl"><tr><th>姓名</th><th>注册时间</th><th>状态</th><th>操作</th></tr>`;
+    uhtml+=`<div style="overflow-x:auto"><table class="atbl"><tr><th>姓名</th><th>地区</th><th>注册时间</th><th>状态</th><th>操作</th></tr>`;
     users.filter(u=>u.role!=='admin').forEach(u=>{
       const isBlocked=blockedIds.includes(u.id);
-      uhtml+=`<tr><td>${u.name}</td><td>${fmtDate(u.createdAt)}</td><td>${isBlocked?'<span style="color:var(--err);font-weight:600">已封禁</span>':'<span style="color:var(--ok)">正常</span>'}</td>`;
+      uhtml+=`<tr><td>${u.name}</td><td>${u.location||'-'}</td><td>${fmtDate(u.createdAt)}</td><td>${isBlocked?'<span style="color:var(--err);font-weight:600">已封禁</span>':'<span style="color:var(--ok)">正常</span>'}</td>`;
       if(isBlocked)uhtml+=`<td><button class="bbtn ublk" onclick="unblockUser('${u.id}')">解封</button></td>`;
       else uhtml+=`<td><button class="bbtn blk" onclick="blockUser('${u.id}','${u.name}')">封禁</button></td>`;
       uhtml+='</tr>'});

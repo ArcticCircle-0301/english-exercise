@@ -15,7 +15,8 @@
 <!-- ========== ⚙️ 配置区 ========== -->
 <script>
 const JSONBIN_API_KEY = '$2a$10$q4Oilv910j0h4OrYWrt1GudpTIjJC43FbGW6Zly9V25jhENQXvfHK';
-const ADMIN_PASS = 'Bjq123456.';  // ← 改成你想要的管理员密码
+const ADMIN_PASS = 'Bjq123456.';
+const QUESTION_TIMEOUT = 30;  // ← 改成你想要的管理员密码
 </script>
 <!-- ========== 配置区结束 ========== -->
 
@@ -113,6 +114,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .back-link{display:inline-flex;align-items:center;gap:5px;color:var(--text3);cursor:pointer;font-size:.88rem;margin-bottom:14px}
 .back-link:hover{color:var(--pri)}
 .loading{position:fixed;inset:0;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;z-index:9998;font-size:1.1rem;color:var(--text2)}
+
+.tbar{height:6px;border-radius:3px;margin-bottom:10px;overflow:hidden;background:var(--bd)}
+.tfill{height:100%;border-radius:3px;transition:width .1s linear,background .3s}
+.tfill.green{background:var(--ok)}.tfill.yellow{background:var(--warn)}.tfill.red{background:var(--err)}
+.obtn.timeout{border-color:var(--warn);background:#FFFBE6;color:#8C6D1F;font-style:italic}
+.ucard .uscore{font-size:.72rem;color:var(--ok);margin-top:2px}
+.rank-section{padding:14px}
+.rank-title{font-size:1.1rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.rank-title i{color:#FFD700}
+.rank-card{background:var(--card);border-radius:12px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 6px rgba(0,0,0,.05);display:flex;align-items:center;gap:12px}
+.rank-pos{font-size:1.3rem;font-weight:800;width:32px;text-align:center}
+.rank-pos.g1{color:#FFD700}.rank-pos.g2{color:#C0C0C0}.rank-pos.g3{color:#CD7F32}
+.rank-info{flex:1}.rank-name{font-weight:600;font-size:.95rem}.rank-meta{font-size:.75rem;color:var(--text3)}
+.rank-score{font-size:1.2rem;font-weight:800;color:var(--pri)}
+.rank-me{border:2px solid var(--pri);background:var(--pri-lt)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9997}
+.modal-card{background:var(--card);border-radius:16px;padding:24px;width:90%;max-width:340px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+.modal-card h3{margin-bottom:16px;text-align:center}
+.bbtn.edit{background:var(--pri);color:#fff}
+
 </style>
 </head>
 <body>
@@ -177,10 +198,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
   <div class="tabs">
     <div class="tab on" onclick="switchMod('vocab',this)">词汇精练</div>
     <div class="tab" onclick="switchMod('phrase',this)">短语练习</div>
+    <div class="tab" onclick="switchMod('rank',this)">排行榜</div>
   </div>
   <div id="unitSel"></div>
   <div id="quizArea" class="hide"></div>
   <div id="resultArea" class="hide"></div>
+  <div id="rankArea" class="hide"></div>
 </div>
 
 <!-- 管理后台 -->
@@ -203,6 +226,7 @@ const JB_HEADERS = {'X-Master-Key': JB_KEY, 'Content-Type': 'application/json', 
 let USERS_BIN_ID = localStorage.getItem('jb_users_bin') || '';
 let RECORDS_BIN_ID = localStorage.getItem('jb_records_bin') || '';
 let BLOCKLIST_BIN_ID = localStorage.getItem('jb_blocklist_bin') || '';
+let SCORES_BIN_ID = localStorage.getItem('jb_scores_bin') || '';
 
 // ===================== JSONBIN HELPER =====================
 async function jbGet(binId){
@@ -252,6 +276,11 @@ async function ensureBins(){
     BLOCKLIST_BIN_ID=id;
     localStorage.setItem('jb_blocklist_bin',id);
   }
+  if(!SCORES_BIN_ID){
+    const id=await jbCreate([{_i:1}]);
+    SCORES_BIN_ID=id;
+    localStorage.setItem('jb_scores_bin',id);
+  }
 }
 
 // Helper: filter out init entries and get clean array
@@ -263,11 +292,14 @@ async function getBlocklist(){return cleanArr(await jbGet(BLOCKLIST_BIN_ID))}
 async function saveUsers(arr){await jbPut(USERS_BIN_ID, arr)}
 async function saveRecords(arr){await jbPut(RECORDS_BIN_ID, arr)}
 async function saveBlocklist(arr){await jbPut(BLOCKLIST_BIN_ID, arr)}
+async function getScores(){return ca(await jbGet(SCORES_BIN_ID))}
+async function saveScores(arr){await jbPut(SCORES_BIN_ID, arr)}
 
 // ===================== STATE =====================
 let currentUser = null;
 let isAdmin = false;
-const S = {module:'vocab',unit:null,qIdx:0,answered:false,selIdx:null,answers:{},completed:{},phraseOpts:{},sessionStart:null};
+const S = {module:'vocab',unit:null,qIdx:0,answered:false,selIdx:null,answers:{},completed:{},phraseOpts:{},sessionStart:null,qStartTime:null,qTimedOut:false,totalTimeouts:0,unitStartTime:null};
+let timerInterval=null,rankInterval=null;
 const vocabCounts = {1:10,2:10,3:10,4:10,5:10,6:9};
 const phraseCounts = {1:9,2:8,3:8,4:8,5:8,6:8};
 
@@ -393,6 +425,17 @@ function startHeartbeat(){
 }
 
 // ===================== USAGE RECORD =====================
+async function saveUnitScore(module,unit,score,total,duration,timeoutCount){
+  if(!currentUser)return;
+  try{const scores=await getScores();
+    const idx=scores.findIndex(s=>s.userId===currentUser.id&&s.module===module&&s.unit===unit);
+    const entry={userId:currentUser.id,name:currentUser.name,module,unit,score,total,duration,timeoutCount,pct:Math.round(score/total*100),updatedAt:new Date().toISOString()};
+    if(idx>=0){const old=scores[idx];if(entry.pct>old.pct||(entry.pct===old.pct&&entry.duration<old.duration)){scores[idx]=entry}}
+    else{scores.push(entry)}
+    await saveScores(scores);
+  }catch(e){console.error('Save score failed:',e)}
+}
+
 async function uploadRecord(score,total){
   if(!currentUser)return;
   try{
@@ -409,25 +452,42 @@ async function uploadRecord(score,total){
 }
 
 // ===================== QUIZ LOGIC =====================
-function switchMod(mod,el){S.module=mod;S.unit=null;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');renderUnitSelection()}
+function switchMod(mod,el){
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null}
+  S.module=mod;S.unit=null;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  if(mod==='rank'){
+    hide(document.getElementById('unitSel'));hide(document.getElementById('quizArea'));hide(document.getElementById('resultArea'));
+    show(document.getElementById('rankArea'));renderRank();return;
+  }
+  hide(document.getElementById('rankArea'));
+  renderUnitSelection();
+}
 function shuffleArray(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
-function renderUnitSelection(){
-  hide(document.getElementById('quizArea'));hide(document.getElementById('resultArea'));
+async function renderUnitSelection(){
+  hide(document.getElementById('quizArea'));hide(document.getElementById('resultArea'));hide(document.getElementById('rankArea'));
   const sel=document.getElementById('unitSel');sel.classList.remove('hide');
   const isV=S.module==='vocab';const counts=isV?vocabCounts:phraseCounts;
+  // Get scores for display
+  let scores=[];
+  try{await ensureBins();scores=await getScores()}catch(e){}
   let html='<div class="ugrid">';
   for(let u=1;u<=6;u++){
     const key=S.module+'-'+u;const done=S.completed[key];
-    html+=`<div class="ucard${done?' done':''}" onclick="selectUnit(${u})"><div class="un">Unit ${u}</div><div class="ul">${counts[u]} ${isV?'词汇':'短语'}题</div></div>`;
+    const myScore=scores.find(s=>s.userId===currentUser.id&&s.module===S.module&&s.unit===u);
+    let scoreHtml='';
+    if(myScore)scoreHtml=`<div class="uscore">最佳：${myScore.pct}% (${myScore.score}/${myScore.total})</div>`;
+    html+=`<div class="ucard${done?' done':''}" onclick="selectUnit(${u})"><div class="un">Unit ${u}</div><div class="ul">${counts[u]} ${isV?'词汇':'短语'}题</div>${scoreHtml}</div>`;
   }
   html+='</div>';sel.innerHTML=html;
 }
 
 function selectUnit(unit){
-  S.unit=unit;S.qIdx=0;S.answered=false;S.selIdx=null;S.sessionStart=new Date();
+  S.unit=unit;S.qIdx=0;S.answered=false;S.selIdx=null;S.qTimedOut=false;S.totalTimeouts=0;S.unitStartTime=new Date();S.unitDurations=[];
   if(S.module==='vocab'){vocabData[unit]=shuffleArray(vocabData[unit])}else{phraseData[unit]=shuffleArray(phraseData[unit]);generatePhraseOptions(unit)}
-  hide(document.getElementById('unitSel'));show(document.getElementById('quizArea'));renderQuestion();
+  hide(document.getElementById('unitSel'));hide(document.getElementById('rankArea'));show(document.getElementById('quizArea'));renderQuestion();startTimer();
 }
 
 function generatePhraseOptions(unit){
@@ -445,7 +505,9 @@ function renderQuestion(){
   const qs=getQuestions();const q=qs[S.qIdx];const isV=S.module==='vocab';const total=getTotalQ();
   const pct=((S.qIdx)/total*100).toFixed(0);
   let html=`<div class="pbar"><div class="pfill" style="width:${pct}%"></div></div>`;
-  html+=`<div class="qhead"><span>第 ${S.qIdx+1} / ${total} 题</span><span id="scoreDisp"></span></div>`;
+  // Timer bar
+  html+=`<div class="tbar"><div id="timerFill" class="tfill green" style="width:100%"></div></div>`;
+  html+=`<div class="qhead"><span>第 ${S.qIdx+1} / ${total} 题</span><span id="timerDisp" style="font-weight:700">⏱ ${QUESTION_TIMEOUT}s</span><span id="scoreDisp"></span></div>`;
   html+=`<div class="qcard"><div class="qsent">${q.s}</div><div class="olist">`;
   if(isV){
     q.o.forEach((opt,i)=>{let cls='obtn';if(S.answered){cls+=' dis';if(i===q.c)cls='obtn ok dis';else if(i===S.selIdx)cls='obtn no dis'}html+=`<div class="${cls}" onclick="selectAnswer(${i})">${opt}</div>`});
@@ -468,7 +530,11 @@ function renderQuestion(){
 }
 
 function selectAnswer(idx){
-  if(S.answered)return;S.selIdx=idx;S.answered=true;
+  if(S.answered)return;
+  stopTimer();
+  const elapsed=Math.round((new Date()-S.qStartTime)/1000);
+  S.unitDurations.push(elapsed);
+  S.selIdx=idx;S.answered=true;
   const q=getQuestions()[S.qIdx];const isV=S.module==='vocab';
   const correctIdx=isV?q.c:S.phraseOpts[S.unit][S.qIdx].correctIdx;
   const key=S.module+'-'+S.unit;if(!S.answers[key])S.answers[key]=[];
@@ -478,21 +544,66 @@ function selectAnswer(idx){
   if(S.qIdx>=getTotalQ()-1)setTimeout(()=>showResult(),1200);
 }
 
-function nextQ(){S.qIdx++;S.answered=false;S.selIdx=null;renderQuestion()}
+function handleTimeout(){
+  if(S.answered)return;
+  S.answered=true;S.qTimedOut=true;S.totalTimeouts++;
+  const elapsed=QUESTION_TIMEOUT;
+  S.unitDurations.push(elapsed);
+  const key=S.module+'-'+S.unit;if(!S.answers[key])S.answers[key]=[];
+  S.answers[key][S.qIdx]=false; // timeout = wrong
+  S.selIdx=-1;
+  renderQuestion();
+  if(S.qIdx>=getTotalQ()-1)setTimeout(()=>showResult(),1200);
+}
+
+function startTimer(){
+  if(timerInterval)clearInterval(timerInterval);
+  S.qStartTime=new Date();S.qTimedOut=false;
+  const total=QUESTION_TIMEOUT;
+  timerInterval=setInterval(()=>{
+    if(S.answered)return;
+    const elapsed=(new Date()-S.qStartTime)/1000;
+    const remaining=total-elapsed;
+    if(remaining<=0){clearInterval(timerInterval);handleTimeout();return}
+    const pct=Math.max(0,remaining/total*100);
+    const fill=document.getElementById('timerFill');
+    const disp=document.getElementById('timerDisp');
+    if(fill){
+      fill.style.width=pct+'%';
+      fill.className='tfill '+(remaining>20?'green':remaining>10?'yellow':'red');
+    }
+    if(disp)disp.innerHTML=`⏱ ${Math.ceil(remaining)}s`;
+  },100);
+}
+
+function stopTimer(){if(timerInterval){clearInterval(timerInterval);timerInterval=null}}
+
+function nextQ(){S.qIdx++;S.answered=false;S.selIdx=null;S.qTimedOut=false;renderQuestion();startTimer()}
 
 async function showResult(){
+  stopTimer();
   hide(document.getElementById('quizArea'));
   const key=S.module+'-'+S.unit;const rec=S.answers[key]||[];
   const total=rec.length;const correct=rec.filter(r=>r).length;const pct=Math.round(correct/total*100);
   S.completed[key]=true;
+  const totalDuration=S.unitDurations.reduce((a,b)=>a+b,0);
+  // Save score
+  await saveUnitScore(S.module,S.unit,correct,total,totalDuration,S.totalTimeouts);
+  // Upload record
+  await uploadRecord(correct,total);
   let emoji='💪';if(pct>=90)emoji='🏆';else if(pct>=75)emoji='🎯';else if(pct>=60)emoji='📚';
+  let timeoutMsg='';
+  if(S.totalTimeouts>0)timeoutMsg=`<div style="color:var(--warn);font-size:.85rem;margin-top:6px">⚠ 超时 ${S.totalTimeouts} 题（不计分）</div>`;
   document.getElementById('resultArea').innerHTML=`
     <div class="rcard"><div style="font-size:2.5rem">${emoji}</div><div class="rscore">${pct}%</div>
-    <div class="rdet">共 ${total} 题，答对 ${correct} 题，答错 ${total-correct} 题</div>
-    <div class="raction"><button class="btn btn-pri btn-sm" onclick="selectUnit(${S.unit})">重做本单元</button>
-    <button class="btn btn-out btn-sm" onclick="backToUnits()">返回单元列表</button></div></div>`;
+    <div class="rdet">共 ${total} 题，答对 ${correct} 题，答错 ${total-correct} 题<br>用时 ${totalDuration} 秒</div>
+    ${timeoutMsg}
+    <div class="raction">
+      <button class="btn btn-pri btn-sm" onclick="selectUnit(${S.unit})">重做本单元</button>
+      <button class="btn btn-out btn-sm" onclick="backToUnits()">返回单元列表</button>
+      <button class="btn btn-out btn-sm" onclick="viewMyRank()"><i class="fa-solid fa-ranking-star"></i> 查看排名</button>
+    </div></div>`;
   show(document.getElementById('resultArea'));
-  await uploadRecord(correct,total);
 }
 
 function backToUnits(){S.unit=null;hide(document.getElementById('quizArea'));hide(document.getElementById('resultArea'));show(document.getElementById('unitSel'));renderUnitSelection()}
@@ -527,14 +638,31 @@ async function loadAdminData(){
       rhtml+='</table></div>'}
     document.getElementById('admRecs').innerHTML=rhtml;
 
+    // Score ranking
+    const allScores=await getScores();
+    // Build per-user best scores
+    let rankHtml=`<h3><i class="fa-solid fa-ranking-star"></i> 成绩排名</h3>`;
+    // Show ranking for each module+unit combo
+    [{m:'vocab',u:1},{m:'vocab',u:2},{m:'vocab',u:3},{m:'vocab',u:4},{m:'vocab',u:5},{m:'vocab',u:6},
+     {m:'phrase',u:1},{m:'phrase',u:2},{m:'phrase',u:3},{m:'phrase',u:4},{m:'phrase',u:5},{m:'phrase',u:6}
+    ].forEach(({m,u})=>{
+      const filtered=allScores.filter(s=>s.module===m&&s.unit===u).sort((a,b)=>b.pct-a.pct||a.duration-b.duration);
+      if(!filtered.length)return;
+      rankHtml+=`<div style="margin-bottom:10px"><b>${m==='vocab'?'词汇':'短语'} Unit ${u}</b></div>`;
+      rankHtml+=`<div style="overflow-x:auto"><table class="atbl"><tr><th>排名</th><th>姓名</th><th>得分</th><th>用时</th><th>超时</th></tr>`;
+      filtered.forEach((s,i)=>{rankHtml+=`<tr><td>${i+1}</td><td>${s.name}</td><td>${s.pct}% (${s.score}/${s.total})</td><td>${s.duration}s</td><td>${s.timeoutCount||0}</td></tr>`});
+      rankHtml+='</table></div>';
+    });
+    document.getElementById('admRecs').innerHTML=rankHtml;
+
     // User management
     let uhtml=`<h3><i class="fa-solid fa-users"></i> 用户管理</h3>`;
     uhtml+=`<div style="overflow-x:auto"><table class="atbl"><tr><th>姓名</th><th>注册地区</th><th>登录地区</th><th>最近登录</th><th>状态</th><th>操作</th></tr>`;
     users.filter(u=>u.role!=='admin').forEach(u=>{
       const isBlocked=blockedIds.includes(u.id);
       uhtml+=`<tr><td>${u.name}</td><td>${u.location||'-'}</td><td>${u.loginLocation||'-'}</td><td>${fmtDate(u.lastLogin)}</td><td>${isBlocked?'<span style="color:var(--err);font-weight:600">已封禁</span>':'<span style="color:var(--ok)">正常</span>'}</td>`;
-      if(isBlocked)uhtml+=`<td><button class="bbtn ublk" onclick="unblockUser('${u.id}')">解封</button></td>`;
-      else uhtml+=`<td><button class="bbtn blk" onclick="blockUser('${u.id}','${u.name}')">封禁</button></td>`;
+      if(isBlocked)uhtml+=`<td><button class="bbtn ublk" onclick="unblockUser('${u.id}')">解封</button> <button class="bbtn edit" onclick="editUserScore('${u.id}','${u.name}')">改分</button></td>`;
+      else uhtml+=`<td><button class="bbtn blk" onclick="blockUser('${u.id}','${u.name}')">封禁</button> <button class="bbtn edit" onclick="editUserScore('${u.id}','${u.name}')">改分</button></td>`;
       uhtml+='</tr>'});
     uhtml+='</table></div>';
     document.getElementById('admUsers').innerHTML=uhtml;
@@ -566,6 +694,83 @@ async function unblockUser(userId){
 
 function fmtDate(d){if(!d)return'-';const dt=new Date(d);return`${dt.getMonth()+1}/${dt.getDate()} ${dt.getHours()}:${String(dt.getMinutes()).padStart(2,'0')}`}
 function fmtDur(s){if(!s)return'-';if(s<60)return s+'秒';return Math.floor(s/60)+'分'+s%60+'秒'}
+
+
+// ===================== RANKING =====================
+async function viewMyRank(){
+  S.module=S.module==='rank'?S._rankMod||(S.module):S.module;
+  const tabs=document.querySelectorAll('.tab');
+  tabs.forEach(t=>t.classList.remove('on'));
+  tabs[2].classList.add('on');
+  hide(document.getElementById('quizArea'));hide(document.getElementById('resultArea'));hide(document.getElementById('unitSel'));
+  show(document.getElementById('rankArea'));
+  await renderRank();
+}
+
+async function renderRank(){
+  const area=document.getElementById('rankArea');
+  let html=`<div class="rank-section"><div class="rank-title"><i class="fa-solid fa-ranking-star"></i> 排行榜</div>`;
+  // Module/unit selector
+  html+=`<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">`;
+  html+=`<select id="rankMod" onchange="S._rankMod=this.value;renderRank()" style="padding:8px 12px;border-radius:8px;border:1px solid var(--bd);font-size:.9rem">
+    <option value="vocab" ${(!S._rankMod||S._rankMod==='vocab')?'selected':''}>词汇精练</option>
+    <option value="phrase" ${S._rankMod==='phrase'?'selected':''}>短语练习</option></select>`;
+  html+=`<select id="rankUnit" onchange="S._rankUnit=parseInt(this.value);renderRank()" style="padding:8px 12px;border-radius:8px;border:1px solid var(--bd);font-size:.9rem">`;
+  for(let u=1;u<=6;u++)html+=`<option value="${u}" ${(S._rankUnit||1)===u?'selected':''}>Unit ${u}</option>`;
+  html+=`</select></div>`;
+  try{
+    const scores=await getScores();
+    const mod=S._rankMod||'vocab';const unit=S._rankUnit||1;
+    let filtered=scores.filter(s=>s.module===mod&&s.unit===unit);
+    filtered.sort((a,b)=>{if(a.pct!==b.pct)return b.pct-a.pct;return a.duration-b.duration});
+    if(!filtered.length){html+=`<div style="text-align:center;color:var(--text3);padding:30px">暂无排名数据</div>`}
+    else{
+      filtered.forEach((s,i)=>{
+        const pos=i+1;
+        const isMe=s.userId===currentUser.id;
+        let posCls=pos===1?'g1':pos===2?'g2':pos===3?'g3':'';
+        html+=`<div class="rank-card${isMe?' rank-me':''}">
+          <div class="rank-pos ${posCls}">${pos<=3?['🥇','🥈','🥉'][pos-1]:pos}</div>
+          <div class="rank-info"><div class="rank-name">${s.name}${isMe?' (我)':''}</div>
+          <div class="rank-meta">用时 ${s.duration}s${s.timeoutCount?' · 超时'+s.timeoutCount+'题':''}</div></div>
+          <div class="rank-score">${s.pct}%</div></div>`;
+      });
+    }
+  }catch(e){html+=`<div style="color:var(--err)">加载失败</div>`}
+  html+='</div>';
+  area.innerHTML=html;
+}
+
+function startRankRefresh(){
+  if(rankInterval)clearInterval(rankInterval);
+  // Note: 0.1s refresh would spam JSONBin API (rate limit). Using 30s instead.
+  // The ranking updates on each render call; auto-refresh every 30s.
+  rankInterval=setInterval(async()=>{
+    if(S.module==='rank'){try{await renderRank()}catch(e){}}
+  },30000);
+}
+
+// Admin: edit score
+async function editUserScore(userId,name){
+  const scores=await getScores();
+  const userScores=scores.filter(s=>s.userId===userId);
+  let msg='当前分数：\n';
+  userScores.forEach(s=>{msg+=`${s.module==='vocab'?'词汇':'短语'} U${s.unit}: ${s.pct}% (${s.score}/${s.total}) 用时${s.duration}s\n`});
+  msg+='\n输入新分数（格式：模块 单元 分数/总数，如 vocab 1 8/10）';
+  const input=prompt(msg);
+  if(!input)return;
+  const parts=input.trim().split(/\s+/);
+  if(parts.length<3){alert('格式错误');return}
+  const mod=parts[0];const unit=parseInt(parts[1]);const scoreParts=parts[2].split('/');
+  const newScore=parseInt(scoreParts[0]);const newTotal=scoreParts.length>1?parseInt(scoreParts[1]):0;
+  if(isNaN(newScore)||isNaN(unit)){alert('格式错误');return}
+  const pct=newTotal>0?Math.round(newScore/newTotal*100):0;
+  const idx=scores.findIndex(s=>s.userId===userId&&s.module===mod&&s.unit===unit);
+  if(idx>=0){scores[idx].score=newScore;scores[idx].total=newTotal||scores[idx].total;scores[idx].pct=pct;scores[idx].duration=0;scores[idx].updatedAt=new Date().toISOString()}
+  else{scores.push({userId,name,module:mod,unit,score:newScore,total:newTotal||10,duration:0,timeoutCount:0,pct,updatedAt:new Date().toISOString()})}
+  await saveScores(scores);
+  alert('已更新！');await loadAdminData();
+}
 
 // ===================== INIT =====================
 // Auto-init bins on first load

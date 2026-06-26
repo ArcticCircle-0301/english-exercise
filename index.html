@@ -343,6 +343,20 @@ async function checkBlockedAndEnter(){
     show(document.getElementById('blockedOv'));
     return;
   }
+  // Update user's login location
+  try{
+    const users=await getUsers();
+    const u=users.find(x=>x.id===currentUser.id);
+    if(u){
+      let loc='';
+      try{const r=await fetch('https://ip.zxinc.org/api.php?type=json');const d=await r.json();loc=(d.country||'')+(d.province||'')+(d.city||'')}catch(e){}
+      u.loginLocation=loc;
+      u.lastLogin=new Date().toISOString();
+      await saveUsers(users);
+      // Update currentUser for display
+      currentUser.loginLocation=loc;
+    }
+  }catch(e){console.error('Update login location failed:',e)}
   hide(document.getElementById('loginPage'));
   show(document.getElementById('mainApp'));
   document.getElementById('navName').textContent=currentUser.name;
@@ -515,10 +529,10 @@ async function loadAdminData(){
 
     // User management
     let uhtml=`<h3><i class="fa-solid fa-users"></i> 用户管理</h3>`;
-    uhtml+=`<div style="overflow-x:auto"><table class="atbl"><tr><th>姓名</th><th>地区</th><th>注册时间</th><th>状态</th><th>操作</th></tr>`;
+    uhtml+=`<div style="overflow-x:auto"><table class="atbl"><tr><th>姓名</th><th>注册地区</th><th>登录地区</th><th>最近登录</th><th>状态</th><th>操作</th></tr>`;
     users.filter(u=>u.role!=='admin').forEach(u=>{
       const isBlocked=blockedIds.includes(u.id);
-      uhtml+=`<tr><td>${u.name}</td><td>${u.location||'-'}</td><td>${fmtDate(u.createdAt)}</td><td>${isBlocked?'<span style="color:var(--err);font-weight:600">已封禁</span>':'<span style="color:var(--ok)">正常</span>'}</td>`;
+      uhtml+=`<tr><td>${u.name}</td><td>${u.location||'-'}</td><td>${u.loginLocation||'-'}</td><td>${fmtDate(u.lastLogin)}</td><td>${isBlocked?'<span style="color:var(--err);font-weight:600">已封禁</span>':'<span style="color:var(--ok)">正常</span>'}</td>`;
       if(isBlocked)uhtml+=`<td><button class="bbtn ublk" onclick="unblockUser('${u.id}')">解封</button></td>`;
       else uhtml+=`<td><button class="bbtn blk" onclick="blockUser('${u.id}','${u.name}')">封禁</button></td>`;
       uhtml+='</tr>'});

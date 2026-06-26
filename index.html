@@ -282,6 +282,17 @@ let timerInterval=null,rankInterval=null;
 const vocabCounts = {1:10,2:10,3:10,4:10,5:10,6:9};
 const phraseCounts = {1:9,2:8,3:8,4:8,5:8,6:8};
 
+// ===================== IP LOCATION =====================
+async function getIpLocation(){
+  const sources=[
+    async()=>{const r=await fetch('https://api.ipify.org?format=json');const d=await r.json();return {ip:d.ip||'',location:''}},
+    async()=>{const r=await fetch('https://ipapi.co/json/');const d=await r.json();return {ip:d.ip||'',location:(d.country_name||'')+' '+(d.region||'')+' '+(d.city||'')}},
+    async()=>{const r=await fetch('https://ip.zxinc.org/api.php?type=json');const d=await r.json();return {ip:d.ip||'',location:(d.country||'')+(d.province||'')+(d.city||'')}}
+  ];
+  for(const fn of sources){try{const result=await fn();if(result.ip)return result}catch(e){}}
+  return {ip:'unknown',location:'unknown'};
+}
+
 // ===================== UI HELPERS =====================
 function show(el){el.classList.remove('hide')}
 function hide(el){el.classList.add('hide')}
@@ -310,7 +321,7 @@ async function doRegister(){
     const hashed=await hashPass(pass);
     const user={id:'u_'+Date.now()+'_'+Math.random().toString(36).slice(2,8), name:name, pass:hashed, role:'student', createdAt:new Date().toISOString(), location:''};
     // Get IP location
-    try{const r=await fetch('https://ip.zxinc.org/api.php?type=json');const d=await r.json();user.location=(d.country||'')+(d.province||'')+(d.city||'')}catch(e){}
+    try{const ipInfo=await getIpLocation();user.location=ipInfo.location;user.ip=ipInfo.ip}catch(e){}
     users.push(user);
     await saveUsers(users);
     currentUser=user;
@@ -360,7 +371,7 @@ async function checkBlockedAndEnter(){
     const u=users.find(x=>x.id===currentUser.id);
     if(u){
       let loc='';
-      try{const r=await fetch('https://ip.zxinc.org/api.php?type=json');const d=await r.json();loc=(d.country||'')+(d.province||'')+(d.city||'')}catch(e){}
+      try{const ipInfo=await getIpLocation();loc=ipInfo.location;loginIp=ipInfo.ip}catch(e){}
       u.loginLocation=loc;
       u.lastLogin=new Date().toISOString();
       await saveUsers(users);
@@ -421,10 +432,10 @@ async function uploadRecord(score,total){
     await ensureBins();
     const records=await getRecords();
     let location='';
-    try{const r=await fetch('https://ip.zxinc.org/api.php?type=json');const d=await r.json();location=(d.country||'')+(d.province||'')+(d.city||'')}catch(e){}
+    try{const ipInfo=await getIpLocation();location=ipInfo.location;recIp=ipInfo.ip}catch(e){}
     const rec={id:'r_'+Date.now(),userId:currentUser.id,name:currentUser.name,module:S.module,unit:S.unit,
       loginTime:S.sessionStart.toISOString(),duration:Math.round((new Date()-S.sessionStart)/1000),
-      score:score,totalQuestions:total,location:location,createdAt:new Date().toISOString()};
+      score:score,totalQuestions:total,location:location,ip:recIp,createdAt:new Date().toISOString()};
     records.push(rec);
     await saveRecords(records);
   }catch(e){console.error('Upload failed:',e)}
@@ -651,10 +662,10 @@ async function loadAdminData(){
 
     // User management
     let uhtml=`<h3><i class="fa-solid fa-users"></i> 用户管理</h3>`;
-    uhtml+=`<div style="overflow-x:auto"><table class="atbl"><tr><th>姓名</th><th>注册地区</th><th>登录地区</th><th>最近登录</th><th>状态</th><th>操作</th></tr>`;
+    uhtml+=`<div style="overflow-x:auto"><table class="atbl"><tr><th>姓名</th><th>注册地区</th><th>登录IP</th><th>登录地区</th><th>最近登录</th><th>状态</th><th>操作</th></tr>`;
     users.filter(u=>u.role!=='admin').forEach(u=>{
       const isBlocked=blockedIds.includes(u.id);
-      uhtml+=`<tr><td>${u.name}</td><td>${u.location||'-'}</td><td>${u.loginLocation||'-'}</td><td>${fmtDate(u.lastLogin)}</td><td>${isBlocked?'<span style="color:var(--err);font-weight:600">已封禁</span>':'<span style="color:var(--ok)">正常</span>'}</td>`;
+      uhtml+=`<tr><td>${u.name}</td><td>${u.location||'-'}</td><td>${u.ip||u.loginIp||'-'}</td><td>${u.loginLocation||'-'}</td><td>${fmtDate(u.lastLogin)}</td><td>${isBlocked?'<span style="color:var(--err);font-weight:600">已封禁</span>':'<span style="color:var(--ok)">正常</span>'}</td>`;
       if(isBlocked)uhtml+=`<td><button class="bbtn ublk" onclick="unblockUser('${u.id}')">解封</button> <button class="bbtn edit" onclick="editUserScore('${u.id}','${u.name}')">改分</button></td>`;
       else uhtml+=`<td><button class="bbtn blk" onclick="blockUser('${u.id}','${u.name}')">封禁</button> <button class="bbtn edit" onclick="editUserScore('${u.id}','${u.name}')">改分</button></td>`;
       uhtml+='</tr>'});

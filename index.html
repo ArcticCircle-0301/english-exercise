@@ -769,22 +769,47 @@ function startRankRefresh(){
 async function editUserScore(userId,name){
   const scores=await getScores();
   const userScores=scores.filter(s=>s.userId===userId);
-  let msg='当前分数：\n';
-  userScores.forEach(s=>{msg+=`${s.module==='vocab'?'词汇':'短语'} U${s.unit}: ${s.pct}% (${s.score}/${s.total}) 用时${s.duration}s\n`});
-  msg+='\n输入新分数（格式：模块 单元 分数/总数，如 vocab 1 8/10）';
-  const input=prompt(msg);
-  if(!input)return;
-  const parts=input.trim().split(/\s+/);
-  if(parts.length<3){alert('格式错误');return}
-  const mod=parts[0];const unit=parseInt(parts[1]);const scoreParts=parts[2].split('/');
-  const newScore=parseInt(scoreParts[0]);const newTotal=scoreParts.length>1?parseInt(scoreParts[1]):0;
-  if(isNaN(newScore)||isNaN(unit)){alert('格式错误');return}
-  const pct=newTotal>0?Math.round(newScore/newTotal*100):0;
-  const idx=scores.findIndex(s=>s.userId===userId&&s.module===mod&&s.unit===unit);
-  if(idx>=0){scores[idx].score=newScore;scores[idx].total=newTotal||scores[idx].total;scores[idx].pct=pct;scores[idx].duration=0;scores[idx].updatedAt=new Date().toISOString()}
-  else{scores.push({userId,name,module:mod,unit,score:newScore,total:newTotal||10,duration:0,timeoutCount:0,pct,updatedAt:new Date().toISOString()})}
-  await saveScores(scores);
-  alert('已更新！');await loadAdminData();
+  // Build modal
+  let existingInfo='';
+  userScores.forEach(s=>{existingInfo+=`${s.module==='vocab'?'词汇':'短语'} U${s.unit}: ${s.pct}% (${s.score}/${s.total}) ${s.duration}s\n`});
+  if(!existingInfo)existingInfo='暂无成绩';
+  
+  const overlay=document.createElement('div');overlay.className='modal-overlay';
+  overlay.innerHTML=`<div class="modal-card">
+    <h3>修改 ${name} 的分数</h3>
+    <div style="font-size:.8rem;color:var(--text3);margin-bottom:14px;padding:8px;background:#f8f9fa;border-radius:8px;white-space:pre-line">${existingInfo}</div>
+    <div class="fg"><label>模块</label><select id="editMod" style="width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;font-size:.95rem">
+      <option value="vocab">词汇精练</option><option value="phrase">短语练习</option></select></div>
+    <div class="fg"><label>单元</label><select id="editUnit" style="width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;font-size:.95rem">
+      <option value="1">Unit 1</option><option value="2">Unit 2</option><option value="3">Unit 3</option>
+      <option value="4">Unit 4</option><option value="5">Unit 5</option><option value="6">Unit 6</option></select></div>
+    <div class="fg"><label>得分（答对题数）</label><input id="editScore" type="number" min="0" placeholder="如 8"></div>
+    <div class="fg"><label>总题数</label><input id="editTotal" type="number" min="1" placeholder="如 10"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn btn-pri btn-full" onclick="doEditScore('${userId}','${name}',this.closest('.modal-overlay'))">确认修改</button>
+    </div>
+    <button class="btn btn-out btn-full" style="margin-top:8px" onclick="this.closest('.modal-overlay').remove()">取消</button>
+  </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function doEditScore(userId,name,overlay){
+  const mod=document.getElementById('editMod').value;
+  const unit=parseInt(document.getElementById('editUnit').value);
+  const newScore=parseInt(document.getElementById('editScore').value);
+  const newTotal=parseInt(document.getElementById('editTotal').value);
+  if(isNaN(newScore)||isNaN(newTotal)||newTotal<=0){alert('请输入有效分数');return}
+  if(newScore>newTotal){alert('得分不能超过总题数');return}
+  const pct=Math.round(newScore/newTotal*100);
+  try{
+    const scores=await getScores();
+    const idx=scores.findIndex(s=>s.userId===userId&&s.module===mod&&s.unit===unit);
+    if(idx>=0){scores[idx].score=newScore;scores[idx].total=newTotal;scores[idx].pct=pct;scores[idx].duration=0;scores[idx].updatedAt=new Date().toISOString()}
+    else{scores.push({userId,name,module:mod,unit,score:newScore,total:newTotal,duration:0,timeoutCount:0,pct,updatedAt:new Date().toISOString()})}
+    await saveScores(scores);
+    overlay.remove();
+    alert('分数已更新！');await loadAdminData();
+  }catch(e){alert('保存失败：'+e.message)}
 }
 
 // ===================== INIT =====================

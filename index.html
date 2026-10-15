@@ -214,6 +214,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
   </div>
   <div id="admStats" class="astats"></div>
   <div id="admRecs" class="asec"></div>
+  <div id="admScores" class="asec"></div>
   <div id="admUsers" class="asec"></div>
 </div>
 
@@ -271,7 +272,7 @@ async function getBlocklist(){return cleanArr(await jbGet(BLOCKLIST_BIN_ID))}
 async function saveUsers(arr){await jbPut(USERS_BIN_ID, arr)}
 async function saveRecords(arr){await jbPut(RECORDS_BIN_ID, arr)}
 async function saveBlocklist(arr){await jbPut(BLOCKLIST_BIN_ID, arr)}
-async function getScores(){return ca(await jbGet(SCORES_BIN_ID))}
+async function getScores(){return cleanArr(await jbGet(SCORES_BIN_ID))}
 async function saveScores(arr){await jbPut(SCORES_BIN_ID, arr)}
 
 // ===================== STATE =====================
@@ -296,6 +297,8 @@ async function getIpLocation(){
 // ===================== UI HELPERS =====================
 function show(el){el.classList.remove('hide')}
 function hide(el){el.classList.add('hide')}
+function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
+function inlineArg(value){return escapeHtml(JSON.stringify(String(value??'')))}
 function setLoading(v){document.getElementById('loadingEl').classList.toggle('hide',!v)}
 function toggleReg(toReg){document.getElementById('loginCard').classList.toggle('hide',toReg);document.getElementById('regCard').classList.toggle('hide',!toReg)}
 function showAdminLogin(){hide(document.getElementById('loginPage'));show(document.getElementById('adminLoginPage'))}
@@ -481,7 +484,7 @@ async function renderUnitSelection(){
       const unitScores=scores.filter(s=>s.module===mod&&s.unit===u).sort((a,b)=>b.pct-a.pct||a.duration-b.duration).slice(0,3);
       if(!unitScores.length)continue;
       html+=`<div style="font-size:.82rem;margin-bottom:4px;color:var(--text2)"><b>U${u}:</b> `;
-      unitScores.forEach((s,i)=>{const medal=i===0?'🥇':i===1?'🥈':'🥉';html+=`${medal}${s.name} ${s.pct}%(${s.duration}s) `});
+      unitScores.forEach((s,i)=>{const medal=i===0?'🥇':i===1?'🥈':'🥉';html+=`${medal}${escapeHtml(s.name)} ${escapeHtml(s.pct)}%(${escapeHtml(s.duration)}s) `});
       html+='</div>';
     }
   }catch(e){}
@@ -639,7 +642,7 @@ async function loadAdminData(){
     let rhtml=`<h3><i class="fa-solid fa-clock-rotate-left"></i> 最近使用记录</h3>`;
     if(!recent.length){rhtml+=`<p style="color:var(--text3);text-align:center;padding:20px">暂无记录</p>`}
     else{rhtml+=`<div style="overflow-x:auto"><table class="atbl"><tr><th>姓名</th><th>模块</th><th>单元</th><th>得分</th><th>时长</th><th>地区</th><th>时间</th></tr>`;
-      recent.forEach(r=>{rhtml+=`<tr><td>${r.name||'-'}</td><td>${r.module==='vocab'?'词汇':'短语'}</td><td>U${r.unit||'-'}</td><td>${r.score}/${r.totalQuestions}</td><td>${fmtDur(r.duration)}</td><td>${r.location||'-'}</td><td>${fmtDate(r.createdAt)}</td></tr>`});
+      recent.forEach(r=>{rhtml+=`<tr><td>${escapeHtml(r.name||'-')}</td><td>${r.module==='vocab'?'词汇':'短语'}</td><td>U${escapeHtml(r.unit||'-')}</td><td>${escapeHtml(r.score)}/${escapeHtml(r.totalQuestions)}</td><td>${escapeHtml(fmtDur(r.duration))}</td><td>${escapeHtml(r.location||'-')}</td><td>${fmtDate(r.createdAt)}</td></tr>`});
       rhtml+='</table></div>'}
     document.getElementById('admRecs').innerHTML=rhtml;
 
@@ -655,19 +658,19 @@ async function loadAdminData(){
       if(!filtered.length)return;
       rankHtml+=`<div style="margin-bottom:10px"><b>${m==='vocab'?'词汇':'短语'} Unit ${u}</b></div>`;
       rankHtml+=`<div style="overflow-x:auto"><table class="atbl"><tr><th>排名</th><th>姓名</th><th>得分</th><th>用时</th><th>超时</th></tr>`;
-      filtered.forEach((s,i)=>{rankHtml+=`<tr><td>${i+1}</td><td>${s.name}</td><td>${s.pct}% (${s.score}/${s.total})</td><td>${s.duration}s</td><td>${s.timeoutCount||0}</td></tr>`});
+      filtered.forEach((s,i)=>{rankHtml+=`<tr><td>${i+1}</td><td>${escapeHtml(s.name)}</td><td>${escapeHtml(s.pct)}% (${escapeHtml(s.score)}/${escapeHtml(s.total)})</td><td>${escapeHtml(s.duration)}s</td><td>${escapeHtml(s.timeoutCount||0)}</td></tr>`});
       rankHtml+='</table></div>';
     });
-    document.getElementById('admRecs').innerHTML=rankHtml;
+    document.getElementById('admScores').innerHTML=rankHtml;
 
     // User management
     let uhtml=`<h3><i class="fa-solid fa-users"></i> 用户管理</h3>`;
     uhtml+=`<div style="overflow-x:auto"><table class="atbl"><tr><th>姓名</th><th>注册地区</th><th>登录IP</th><th>登录地区</th><th>最近登录</th><th>状态</th><th>操作</th></tr>`;
     users.filter(u=>u.role!=='admin').forEach(u=>{
       const isBlocked=blockedIds.includes(u.id);
-      uhtml+=`<tr><td>${u.name}</td><td>${u.location||'-'}</td><td>${u.ip||u.loginIp||'-'}</td><td>${u.loginLocation||'-'}</td><td>${fmtDate(u.lastLogin)}</td><td>${isBlocked?'<span style="color:var(--err);font-weight:600">已封禁</span>':'<span style="color:var(--ok)">正常</span>'}</td>`;
-      if(isBlocked)uhtml+=`<td><button class="bbtn ublk" onclick="unblockUser('${u.id}')">解封</button> <button class="bbtn edit" onclick="editUserScore('${u.id}','${u.name}')">改分</button></td>`;
-      else uhtml+=`<td><button class="bbtn blk" onclick="blockUser('${u.id}','${u.name}')">封禁</button> <button class="bbtn edit" onclick="editUserScore('${u.id}','${u.name}')">改分</button></td>`;
+      uhtml+=`<tr><td>${escapeHtml(u.name)}</td><td>${escapeHtml(u.location||'-')}</td><td>${escapeHtml(u.ip||u.loginIp||'-')}</td><td>${escapeHtml(u.loginLocation||'-')}</td><td>${fmtDate(u.lastLogin)}</td><td>${isBlocked?'<span style="color:var(--err);font-weight:600">已封禁</span>':'<span style="color:var(--ok)">正常</span>'}</td>`;
+      if(isBlocked)uhtml+=`<td><button class="bbtn ublk" onclick="unblockUser(${inlineArg(u.id)})">解封</button> <button class="bbtn edit" onclick="editUserScore(${inlineArg(u.id)},${inlineArg(u.name)})">改分</button></td>`;
+      else uhtml+=`<td><button class="bbtn blk" onclick="blockUser(${inlineArg(u.id)},${inlineArg(u.name)})">封禁</button> <button class="bbtn edit" onclick="editUserScore(${inlineArg(u.id)},${inlineArg(u.name)})">改分</button></td>`;
       uhtml+='</tr>'});
     uhtml+='</table></div>';
     document.getElementById('admUsers').innerHTML=uhtml;
@@ -736,9 +739,9 @@ async function renderRank(){
         let posCls=pos===1?'g1':pos===2?'g2':pos===3?'g3':'';
         html+=`<div class="rank-card${isMe?' rank-me':''}">
           <div class="rank-pos ${posCls}">${pos<=3?['🥇','🥈','🥉'][pos-1]:pos}</div>
-          <div class="rank-info"><div class="rank-name">${s.name}${isMe?' (我)':''}</div>
-          <div class="rank-meta">用时 ${s.duration}s${s.timeoutCount?' · 超时'+s.timeoutCount+'题':''}</div></div>
-          <div class="rank-score">${s.pct}%</div></div>`;
+          <div class="rank-info"><div class="rank-name">${escapeHtml(s.name)}${isMe?' (我)':''}</div>
+          <div class="rank-meta">用时 ${escapeHtml(s.duration)}s${s.timeoutCount?' · 超时'+escapeHtml(s.timeoutCount)+'题':''}</div></div>
+          <div class="rank-score">${escapeHtml(s.pct)}%</div></div>`;
       });
     }
   }catch(e){html+=`<div style="color:var(--err)">加载失败</div>`}
@@ -766,8 +769,8 @@ async function editUserScore(userId,name){
   
   const overlay=document.createElement('div');overlay.className='modal-overlay';
   overlay.innerHTML=`<div class="modal-card">
-    <h3>修改 ${name} 的分数</h3>
-    <div style="font-size:.8rem;color:var(--text3);margin-bottom:14px;padding:8px;background:#f8f9fa;border-radius:8px;white-space:pre-line">${existingInfo}</div>
+    <h3>修改 ${escapeHtml(name)} 的分数</h3>
+    <div style="font-size:.8rem;color:var(--text3);margin-bottom:14px;padding:8px;background:#f8f9fa;border-radius:8px;white-space:pre-line">${escapeHtml(existingInfo)}</div>
     <div class="fg"><label>模块</label><select id="editMod" style="width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;font-size:.95rem">
       <option value="vocab">词汇精练</option><option value="phrase">短语练习</option></select></div>
     <div class="fg"><label>单元</label><select id="editUnit" style="width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;font-size:.95rem">
@@ -776,7 +779,7 @@ async function editUserScore(userId,name){
     <div class="fg"><label>得分（答对题数）</label><input id="editScore" type="number" min="0" placeholder="如 8"></div>
     <div class="fg"><label>总题数</label><input id="editTotal" type="number" min="1" placeholder="如 10"></div>
     <div style="display:flex;gap:10px;margin-top:16px">
-      <button class="btn btn-pri btn-full" onclick="doEditScore('${userId}','${name}',this.closest('.modal-overlay'))">确认修改</button>
+      <button class="btn btn-pri btn-full" onclick="doEditScore(${inlineArg(userId)},${inlineArg(name)},this.closest('.modal-overlay'))">确认修改</button>
     </div>
     <button class="btn btn-out btn-full" style="margin-top:8px" onclick="this.closest('.modal-overlay').remove()">取消</button>
   </div>`;

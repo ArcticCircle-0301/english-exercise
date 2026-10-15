@@ -212,6 +212,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
     <h1><i class="fa-solid fa-shield-halved" style="color:var(--err)"></i> 管理后台</h1>
     <button class="btn btn-sm btn-out" onclick="exitAdmin()"><i class="fa-solid fa-arrow-left"></i> 返回</button>
   </div>
+  <div id="admError" class="err-msg" role="alert"></div>
   <div id="admStats" class="astats"></div>
   <div id="admRecs" class="asec"></div>
   <div id="admScores" class="asec"></div>
@@ -225,9 +226,9 @@ const JB_HEADERS = {'X-Master-Key': JB_KEY, 'Content-Type': 'application/json', 
 
 // Data bins - will be created on first run
 let USERS_BIN_ID='6a3e558ef5f4af5e29339e4c';
-let RECORDS_BIN_ID='6a3e5591f5f4af5e29339e5e';
-let BLOCKLIST_BIN_ID='6a3e5592f5f4af5e29339e5f';
-let SCORES_BIN_ID='6a3e5593f5f4af5e29339e60';
+let RECORDS_BIN_ID='6ad0ab3effd5d160536d0c1f';
+let BLOCKLIST_BIN_ID='6ad0ab3effd5d160536d0c1e';
+let SCORES_BIN_ID='6ad0ab3eac6210605a3360bc';
 
 // ===================== JSONBIN HELPER =====================
 async function jbGet(binId){
@@ -621,6 +622,7 @@ function exitAdmin(){isAdmin=false;hide(document.getElementById('adminApp'));sho
 
 async function loadAdminData(){
   setLoading(true);
+  document.getElementById('admError').textContent='';
   try{
     await ensureBins();
     const users=await getUsers();
@@ -674,7 +676,10 @@ async function loadAdminData(){
       uhtml+='</tr>'});
     uhtml+='</table></div>';
     document.getElementById('admUsers').innerHTML=uhtml;
-  }catch(e){console.error('Admin load error:',e)}finally{setLoading(false)}
+  }catch(e){
+    console.error('Admin load error:',e);
+    document.getElementById('admError').textContent='后台数据加载失败：'+(e.message||'未知错误');
+  }finally{setLoading(false)}
 }
 
 async function blockUser(userId,name){
